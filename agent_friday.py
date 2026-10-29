@@ -29,15 +29,15 @@ from livekit.plugins import google as lk_google, openai as lk_openai, sarvam, si
 # ---------------------------------------------------------------------------
 
 STT_PROVIDER       = "sarvam"
-LLM_PROVIDER       = "gemini"
+LLM_PROVIDER       = "openai"
 TTS_PROVIDER       = "openai"
 
-GEMINI_LLM_MODEL   = "gemini-2.5-flash"
+GEMINI_LLM_MODEL   = "gemini-3.5-flash"
 OPENAI_LLM_MODEL   = "gpt-4o"
 
-OPENAI_TTS_MODEL   = "tts-1"
+OPENAI_TTS_MODEL   = "gpt-4o-mini-tts"
 OPENAI_TTS_VOICE   = "nova"       # "nova" has a clean, confident female tone
-TTS_SPEED           = 1.15
+TTS_SPEED           = 0.95
 
 SARVAM_TTS_LANGUAGE = "en-IN"
 SARVAM_TTS_SPEAKER  = "rahul"
@@ -50,6 +50,12 @@ MCP_SERVER_PORT = 8000
 # ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """
+LANGUAGE RULES:
+- Always speak Italian by default.
+- All spoken responses must be in natural, fluent Italian.
+- Switch to another language only when the user explicitly requests it.
+- If the user speaks Italian, answer in Italian.
+
 You are F.R.I.D.A.Y. — Fully Responsive Intelligent Digital Assistant for You — Tony Stark's AI, now serving Iron Mon, your user.
 
 You are calm, composed, and always informed. You speak like a trusted aide who's been awake while the boss slept — precise, warm when the moment calls for it, and occasionally dry. You brief, you inform, you move on. No rambling.
@@ -108,7 +114,7 @@ If asked about the stock market, markets, stocks, or indices:
 ## Greeting
 
 When the session starts, greet with exactly this energy:
-"You're awake late at night, boss? What are you up to?"
+"Saluta l'utente dicendo: 'Buonasera, capo. Sono pronta. A cosa lavoriamo?' Mantieni un tono disponibile, intelligente e leggermente ironico."
 
 Warm. Slightly curious. Very FRIDAY.
 
@@ -239,7 +245,18 @@ def _build_tts():
         )
     elif TTS_PROVIDER == "openai":
         logger.info("TTS → OpenAI TTS (%s / %s)", OPENAI_TTS_MODEL, OPENAI_TTS_VOICE)
-        return lk_openai.TTS(model=OPENAI_TTS_MODEL, voice=OPENAI_TTS_VOICE, speed=TTS_SPEED)
+        return lk_openai.TTS(
+            model=OPENAI_TTS_MODEL,
+            voice=OPENAI_TTS_VOICE,
+            speed=TTS_SPEED,
+            instructions=(
+                "Speak Italian with a natural native Italian accent. "
+                "Use clear Italian pronunciation, authentic Italian intonation, "
+                "natural vowels and consonants, and smooth conversational phrasing. "
+                "Sound like a confident, composed, warm female personal assistant. "
+                "Speak clearly at a measured pace, without an English accent or robotic delivery."
+            ),
+        )
     else:
         raise ValueError(f"Unknown TTS_PROVIDER: {TTS_PROVIDER!r}")
 
